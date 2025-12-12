@@ -53,11 +53,12 @@ export const insertCmd = async (interaction: ChatInputCommandInteraction<CacheTy
   // 応答文章作成
   let replyText = "";
   for (const {i, transaction} of transactions.map((transaction, i) => ({i, transaction}))) {
-    console.log(transaction);
+    const payer = members.get(transaction.payer);
+    const participant = members.get(transaction.participant);
     replyText += `${i}: ${
-      (await guild.members.fetch(transaction.payer)).displayName
+      payer === undefined ? "(存在しないユーザー)" : payer.displayName
     }が${
-      (await guild.members.fetch(transaction.participant)).displayName
+      participant === undefined ? "(存在しないユーザー)" : participant.displayName
     }の分のお金を${transaction.amount}円払った\n`;
   }
   await interaction.reply(replyText);
