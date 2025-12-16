@@ -35,7 +35,7 @@ const commands = [
           .setDescription('削除したいデータの番号（ID）')
           .setRequired(true)
       )
-].map(command => command.toJSON());
+].map((command) => command.toJSON());
 
 // おまじない　サーバーにコマンドを登録する
 const token = process.env.DISCORD_BOT_TOKEN;
@@ -47,15 +47,23 @@ if (!token || !clientId || !guildId) {
 }
 
 const rest = new REST({ version: '10' }).setToken(token);
-(async () => {
-  try {
-    console.log('登録開始');
-    await rest.put(
-      Routes.applicationGuildCommands(clientId, guildId),
-      { body: commands },
-    );
-    console.log('コマンド登録成功');
-  } catch (error) {
-    console.error(error);
-  }
-})();
+console.log('登録開始');
+rest
+  .put(
+    Routes.applicationGuildCommands(clientId, guildId),
+    { body: commands },
+  )
+  .catch((e) => console.log(e));
+console.log('コマンド登録成功');
+// (async () => {
+//   try {
+//     console.log('登録開始');
+//     await rest.put(
+//       Routes.applicationGuildCommands(clientId, guildId),
+//       { body: commands },
+//     );
+//     console.log('コマンド登録成功');
+//   } catch (error) {
+//     console.error(error);
+//   }
+// })();

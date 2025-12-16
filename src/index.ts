@@ -54,9 +54,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   // コマンド名で分岐
   if (interaction.commandName === "insert") {
-    await insertCmd(interaction);
+    await insertCmd(client, interaction);
   } else if (interaction.commandName === "delete") {
-    await deleteCmd(interaction);
+    await deleteCmd(client, interaction);
   }
 });
 

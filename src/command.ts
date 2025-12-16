@@ -1,36 +1,12 @@
 import assert from "assert";
-import { CacheType, ChatInputCommandInteraction } from "discord.js";
-import { readFileSync, writeFileSync } from "fs";
-import { client } from ".";
+import { CacheType, ChatInputCommandInteraction, Client } from "discord.js";
+import { Transaction, readTransactions, writeTransactions } from "./transaction";
 
-const STORAGE_PATH = "storage.json";
 const GUILD_ID = process.env.GUILD_ID;
 
-type Transaction = {
-  payer: string;
-  participant: string;
-  amount: number;
-};
-
-function isTransaction(data: any): data is Transaction {
-  return (
-    typeof data === "object" &&
-    data !== null &&
-    typeof data.payer === "string" &&
-    typeof data.participant === "string" &&
-    typeof data.amount === "number" &&
-    !Number.isNaN(data.amount)
-  );
-}
-
-function isTransactionArray(data: any): data is Transaction[] {
-  return Array.isArray(data) && data.every((item) => isTransaction(item));
-}
-
-export const insertCmd = async (interaction: ChatInputCommandInteraction<CacheType>) => {
+export const insertCmd = async (client: Client<boolean>, interaction: ChatInputCommandInteraction<CacheType>) => {
   // 今までの履歴を持ってくる
-  const transactions = JSON.parse(readFileSync(STORAGE_PATH, "utf8"));
-  assert(isTransactionArray(transactions));
+  const transactions = readTransactions();
 
   // 受け取った引数はこんな感じで取り出せる
   const participant = interaction.options.getUser("participant", true).id;
@@ -47,12 +23,11 @@ export const insertCmd = async (interaction: ChatInputCommandInteraction<CacheTy
 
   assert(GUILD_ID !== undefined);
   const guild = await client.guilds.fetch(GUILD_ID);
-
   const members = new Map(await guild.members.fetch());
 
   // 応答文章作成
   let replyText = "";
-  for (const {i, transaction} of transactions.map((transaction, i) => ({i, transaction}))) {
+  for (const {i, transaction} of transactions.slice(-10).map((transaction, i) => ({i, transaction}))) {
     const payer = members.get(transaction.payer);
     const participant = members.get(transaction.participant);
     replyText += `${i}: ${
@@ -64,15 +39,12 @@ export const insertCmd = async (interaction: ChatInputCommandInteraction<CacheTy
   await interaction.reply(replyText);
 
   // Storage.jsonに新データを追加したものを書き込む
-  writeFileSync(STORAGE_PATH, JSON.stringify(transactions, undefined, 2));
+  writeTransactions(transactions);
 };
 
-export const deleteCmd = async (interaction: ChatInputCommandInteraction<CacheType>) => {
+export const deleteCmd = async (client: Client<boolean>, interaction: ChatInputCommandInteraction<CacheType>) => {
   // 1. 今までの履歴を持ってくる
-  const transactions = JSON.parse(readFileSync(STORAGE_PATH, "utf8"));
-  
-  // 型アサーション関数（既存のコードにある想定）
-  assert(isTransactionArray(transactions)); 
+  const transactions = readTransactions();
 
   // 2. Integer(整数)としてインデックスを受け取る
   const index = interaction.options.getInteger("id", true);
@@ -88,9 +60,22 @@ export const deleteCmd = async (interaction: ChatInputCommandInteraction<CacheTy
   const deletedItem = transactions.splice(index, 1)[0];
 
   // 5. 重要: 変更内容をファイルに書き込む（保存）
-  writeFileSync(STORAGE_PATH, JSON.stringify(transactions, undefined, 2));
+  writeTransactions(transactions);
+
+  assert(GUILD_ID !== undefined);
+  const guild = await client.guilds.fetch(GUILD_ID);
+  const members = new Map(await guild.members.fetch());
+
+  const payer = members.get(deletedItem.payer);
+  const participant = members.get(deletedItem.participant);
 
   // 6. 完了メッセージ
-  const replyText = `以下ののデータを削除しました。\n\t返金する人: ${deletedItem.participant}\n\t払った人: ${deletedItem.payer}\n\t金額: ${deletedItem.amount}`;
+  const replyText = `以下ののデータを削除しました。\n\t返金する人: ${
+    participant === undefined ? ("存在しないユーザー") : participant.displayName
+  }\n\t払った人: ${
+    payer === undefined ? ("存在しないユーザー") : payer.displayName
+  }\n\t金額: ${
+    deletedItem.amount
+  }`;
   await interaction.reply({ content: replyText });
 };
