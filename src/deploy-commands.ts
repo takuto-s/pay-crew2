@@ -9,21 +9,22 @@ const commands = [
     .setDescription('支払いを追加します')
     .addUserOption((option) => 
       option
-        .setName('payer')
-        .setDescription('支払った人')
+        .setName('支払った人')
+        .setDescription('今回の支払いを建て替えた人')
         .setRequired(true)
     )
     .addUserOption((option) =>
       option
-        .setName('participant')
-        .setDescription('相手')
+        .setName('返金した人')
+        .setDescription('今回の支払いを返金すべき人')
         .setRequired(true)
     )
     .addIntegerOption((option) =>
       option
-        .setName('amount')
-        .setDescription('金額')
+        .setName('金額')
+        .setDescription('支払いの金額')
         .setRequired(true)
+        .setMinValue(1)
     ),
   // 削除
   new SlashCommandBuilder()
