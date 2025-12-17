@@ -1,7 +1,6 @@
 import assert from "assert";
 import { CacheType, ChatInputCommandInteraction, Client, GuildMember } from "discord.js";
 import { Transaction, readTransactions, writeTransactions } from "./transaction";
-import { client } from ".";
 
 const GUILD_ID = process.env.GUILD_ID;
 
@@ -10,8 +9,8 @@ const historyReplyMsg = (n: number, transactions: Transaction[], members: Map<st
   
   let replyText = "";
   for (const {i, transaction} of transactions
-    .map((transaction, i) => ({i, transaction}))
-    .slice(transactions.length > n ? -n: undefined)
+    .map((transaction, i) => ({i: i + 1, transaction}))
+    .slice(transactions.length > n ? transactions.length - n : undefined)
     .reverse()
   ) {
     const payer = members.get(transaction.payer);
@@ -65,14 +64,14 @@ export const deleteCmd = async (client: Client<boolean>, interaction: ChatInputC
   const index = interaction.options.getInteger("id", true);
 
   // 3. バリデーション: その番号のデータが本当に存在するか確認
-  if (index < 0 || index >= transactions.length) {
+  if (index < 1 || index > transactions.length) {
     await interaction.reply({ content: `ID: ${index} のデータは見つかりませんでした。（0 〜 ${transactions.length - 1} の範囲で指定してください）`, ephemeral: true });
     return;
   }
 
   // 4. 削除実行
   // spliceは削除された要素を配列で返すので、何が消えたか取得しておくと親切です
-  const deletedItem = transactions.splice(index, 1)[0];
+  const deletedItem = transactions.splice(index - 1, 1)[0];
 
   // 5. 重要: 変更内容をファイルに書き込む（保存）
   writeTransactions(transactions);
@@ -145,7 +144,7 @@ export const refundCmd = async (client: Client<boolean>, interaction: ChatInputC
   let positiveRefundMembersIndex = 0;
   let negativeRefundMembersIndex = 0;
   while (positiveRefundMembersIndex < positiveRefundMembers.length && negativeRefundMembersIndex < negativeRefundMembers.length) {
-    if (positiveRefundMembers[positiveRefundMembersIndex].amount >= negativeRefundMembers[negativeRefundMembersIndex].amount) {
+    if (positiveRefundMembers[positiveRefundMembersIndex].amount >= -negativeRefundMembers[negativeRefundMembersIndex].amount) {
       refunds.push({
         from: negativeRefundMembers[negativeRefundMembersIndex].member, 
         to: positiveRefundMembers[positiveRefundMembersIndex].member,
