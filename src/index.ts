@@ -1,5 +1,5 @@
 import { Client, GatewayIntentBits, Events, ChannelType } from "discord.js";
-import { deleteCmd, insertCmd } from "./command";
+import { deleteCmd, historyCmd, insertCmd, refundCmd } from "./command";
 
 //////
 
@@ -57,6 +57,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
     await insertCmd(client, interaction);
   } else if (interaction.commandName === "delete") {
     await deleteCmd(client, interaction);
+  } else if (interaction.commandName === "history") {
+    await historyCmd(client, interaction);
+  } else if (interaction.commandName === "refund") {
+    await refundCmd(client, interaction)
+  } else {
+    throw new Error("Unknown command")
   }
 });
 
