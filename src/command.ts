@@ -1,10 +1,10 @@
 import assert from "assert";
-import { CacheType, ChatInputCommandInteraction, Client, GuildMember } from "discord.js";
+import { CacheType, ChatInputCommandInteraction, Client, Guild, GuildMember } from "discord.js";
 import { Transaction, readTransactions, writeTransactions } from "./transaction";
 
 const GUILD_ID = process.env.GUILD_ID;
 
-const historyReplyMsg = (n: number, transactions: Transaction[], members: Map<string, GuildMember>) => {
+const historyReplyMsg = (n: number, transactions: Transaction[], guild: Guild) => {
   assert(0 <= n);
   
   let replyText = "";
@@ -13,8 +13,8 @@ const historyReplyMsg = (n: number, transactions: Transaction[], members: Map<st
     .slice(transactions.length > n ? transactions.length - n : undefined)
     .reverse()
   ) {
-    const payer = members.get(transaction.payer);
-    const participant = members.get(transaction.participant);
+    const payer = guild.members.cache.get(transaction.payer);
+    const participant = guild.members.cache.get(transaction.participant);
     replyText += `${i}: ${
       payer === undefined ? "(存在しないユーザー)" : payer.displayName
     }が${
@@ -46,10 +46,9 @@ export const insertCmd = async (client: Client<boolean>, interaction: ChatInputC
 
   assert(GUILD_ID !== undefined);
   const guild = await client.guilds.fetch(GUILD_ID);
-  const members = new Map(await guild.members.fetch());
 
   // 応答文章作成
-  let replyText = historyReplyMsg(10, transactions, members);
+  let replyText = historyReplyMsg(10, transactions, guild);
   await interaction.reply(replyText);
 
   // Storage.jsonに新データを追加したものを書き込む
@@ -78,10 +77,9 @@ export const deleteCmd = async (client: Client<boolean>, interaction: ChatInputC
 
   assert(GUILD_ID !== undefined);
   const guild = await client.guilds.fetch(GUILD_ID);
-  const members = new Map(await guild.members.fetch());
 
-  const payer = members.get(deletedItem.payer);
-  const participant = members.get(deletedItem.participant);
+  const payer = guild.members.cache.get(deletedItem.payer);
+  const participant = guild.members.cache.get(deletedItem.participant);
 
   // 6. 完了メッセージ
   const replyText = `以下ののデータを削除しました。\n\t返金する人: ${
@@ -102,9 +100,8 @@ export const historyCmd = async (client: Client<boolean>, interaction: ChatInput
 
   assert(GUILD_ID !== undefined);
   const guild = await client.guilds.fetch(GUILD_ID);
-  const members = new Map(await guild.members.fetch());
 
-  let replyText = historyReplyMsg(n, transactions, members);
+  let replyText = historyReplyMsg(n, transactions, guild);
   await interaction.reply(replyText);
 }
 
@@ -167,12 +164,11 @@ export const refundCmd = async (client: Client<boolean>, interaction: ChatInputC
 
   assert(GUILD_ID !== undefined);
   const guild = await client.guilds.fetch(GUILD_ID);
-  const members = new Map(await guild.members.fetch());
 
   let replyText = "";
   for (const {from, to, amount} of refunds) {
-    const fromMember = members.get(from);
-    const toMember = members.get(to);
+    const fromMember = guild.members.cache.get(from);
+    const toMember = guild.members.cache.get(to);
     replyText += `${
       fromMember === undefined ? "(存在しないユーザー)" : fromMember.displayName
     }が${
