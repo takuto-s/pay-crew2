@@ -44,8 +44,24 @@ const commands = [
       .setDescription("表示する個数")
     ),
   new SlashCommandBuilder()
-    .setName("refund")
+    .setName("list")
     .setDescription("支払いを合算したものを表示します")
+  ,
+  new SlashCommandBuilder()
+    .setName("refund")
+    .setDescription('返金処理をします')
+    .addUserOption((option) => 
+      option
+        .setName('返金した人')
+        .setDescription('返金を終えた人')
+        .setRequired(true)
+    )
+    .addUserOption((option) =>
+      option
+        .setName('返金してもらった人')
+        .setDescription('お金を貸していた人')
+        .setRequired(true)
+    ),
 ].map((command) => command.toJSON());
 
 // おまじない　サーバーにコマンドを登録する

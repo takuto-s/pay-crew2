@@ -108,7 +108,7 @@ export const historyCmd = async (client: Client<boolean>, interaction: ChatInput
   await interaction.reply(replyText);
 }
 
-export const refundCmd = async (client: Client<boolean>, interaction: ChatInputCommandInteraction<CacheType>) => {
+export const listCmd = async (client: Client<boolean>, interaction: ChatInputCommandInteraction<CacheType>) => {
   const transactions = readTransactions();
 
   const memberAmounts = new Map<string, number>();
@@ -183,3 +183,78 @@ export const refundCmd = async (client: Client<boolean>, interaction: ChatInputC
   }
   await interaction.reply(replyText);
 }
+
+export const refundCmd = async (client: Client<boolean>, interaction: ChatInputCommandInteraction<CacheType>) => {
+  // 今までの履歴を持ってくる
+  const transactions = readTransactions();
+
+  // 受け取った引数はこんな感じで取り出せる
+  const refundman = interaction.options.getUser("返金した人", true).id;
+  const paymentman = interaction.options.getUser("お金を貸していた人", true).id;
+
+  const memberAmounts = new Map<string, number>();
+  for (const transaction of transactions) {
+    const payerAmount = memberAmounts.get(transaction.payer);
+    if (payerAmount === undefined) {
+      memberAmounts.set(transaction.payer, transaction.amount);
+    } else {
+      memberAmounts.set(transaction.payer, payerAmount + transaction.amount)
+    }
+    
+    const participantAmount = memberAmounts.get(transaction.participant);
+    if (participantAmount === undefined) {
+      memberAmounts.set(transaction.participant, -transaction.amount);
+    } else {
+      memberAmounts.set(transaction.participant, participantAmount - transaction.amount)
+    }
+  }
+
+  const positiveRefundMembers: {member: string, amount: number}[] = [];
+  const negativeRefundMembers: {member: string, amount: number}[] = [];
+  for (const [member, amount] of memberAmounts) {
+    if (amount > 0) {
+      positiveRefundMembers.push({member, amount});
+    } else if (amount < 0) {
+      negativeRefundMembers.push({member, amount});
+    }
+  }
+  positiveRefundMembers.sort((a, b) => (b.amount - a.amount));
+  negativeRefundMembers.sort((a, b) => (b.amount - a.amount));
+
+  const refunds: {from: string, to: string, amount: number}[] = []
+  let positiveRefundMembersIndex = 0;
+  let negativeRefundMembersIndex = 0;
+  while (positiveRefundMembersIndex < positiveRefundMembers.length && negativeRefundMembersIndex < negativeRefundMembers.length) {
+    if (positiveRefundMembers[positiveRefundMembersIndex].amount >= -negativeRefundMembers[negativeRefundMembersIndex].amount) {
+      refunds.push({
+        from: negativeRefundMembers[negativeRefundMembersIndex].member, 
+        to: positiveRefundMembers[positiveRefundMembersIndex].member,
+        amount: negativeRefundMembers[negativeRefundMembersIndex].amount
+      });
+      positiveRefundMembers[positiveRefundMembersIndex].amount -= negativeRefundMembers[negativeRefundMembersIndex].amount;
+      negativeRefundMembers[negativeRefundMembersIndex].amount = 0;
+      negativeRefundMembersIndex += 1;
+    } else {
+      refunds.push({
+        from: negativeRefundMembers[negativeRefundMembersIndex].member, 
+        to: positiveRefundMembers[positiveRefundMembersIndex].member,
+        amount: positiveRefundMembers[positiveRefundMembersIndex].amount
+      });
+      positiveRefundMembers[positiveRefundMembersIndex].amount = 0;
+      negativeRefundMembers[negativeRefundMembersIndex].amount -= positiveRefundMembers[positiveRefundMembersIndex].amount;
+      positiveRefundMembersIndex += 1;
+    }
+  }
+
+  // 借金をしている人のデータを一つずつ取り出して、返金した人と照らし合わせる
+  for (let i = 0; i < negativeRefundMembers.length; i++) {
+    if (refundman === negativeRefundMembers[i].member) {
+      // 返金のデータを入れ(refundを見て金額を持ってきてtransactionを更新)
+      refunds
+
+    }
+  }
+
+  // Storage.jsonに新データを追加したものを書き込む
+  writeTransactions(transactions);
+};
