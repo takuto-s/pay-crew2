@@ -64,8 +64,8 @@ rest
     Routes.applicationGuildCommands(clientId, guildId),
     { body: commands },
   )
+  .then((v) => console.log('コマンド登録成功'))
   .catch((e) => console.log(e));
-console.log('コマンド登録成功');
 // (async () => {
 //   try {
 //     console.log('登録開始');
