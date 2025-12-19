@@ -1,10 +1,28 @@
 import assert from "assert";
 import { CacheType, ChatInputCommandInteraction, Client } from "discord.js";
 import { Transaction, readTransactions, writeTransactions } from "./transaction";
+import { 
+  ActionRowBuilder, 
+  ButtonBuilder, 
+  ButtonStyle, 
+} from "discord.js";
 
 const GUILD_ID = process.env.GUILD_ID;
 assert(GUILD_ID !== undefined);
 
+
+const confirmButton = new ButtonBuilder()
+  .setCustomId('confirm_transaction') // コード内で判別するためのID
+  .setLabel('承認する')                // ボタンに表示される文字
+  .setStyle(ButtonStyle.Primary);      // ボタンの色（青）
+
+const cancelButton = new ButtonBuilder()
+  .setCustomId('cancel_transaction')
+  .setLabel('キャンセル')
+  .setStyle(ButtonStyle.Danger);
+
+  const row = new ActionRowBuilder<ButtonBuilder>()
+  .addComponents(confirmButton, cancelButton);
 export const insertCmd = async (client: Client<boolean>, interaction: ChatInputCommandInteraction<CacheType>) => {
   // 履歴の読み込み
   const transactions: Transaction[] = readTransactions();
@@ -195,7 +213,10 @@ export const listCmd = async (client: Client<boolean>, interaction: ChatInputCom
     );
   }
   const replyText = replyTexts.join("");
-  await interaction.reply(replyText);
+  await interaction.reply({
+    content:replyText,
+    components: [row],
+  });
 }
 
 export const refundCmd = async (client: Client<boolean>, interaction: ChatInputCommandInteraction<CacheType>) => {
@@ -209,13 +230,13 @@ export const refundCmd = async (client: Client<boolean>, interaction: ChatInputC
   const refunds = refundList();
 
   // 借金をしている人のデータを一つずつ取り出して、返金した人と照らし合わせる
-  for (let i = 0; i < negativeRefundMembers.length; i++) {
-    if (refundman === negativeRefundMembers[i].member) {
-      // 返金のデータを入れ(refundを見て金額を持ってきてtransactionを更新)
-      refunds
+  // for (let i = 0; i < negativeRefundMembers.length; i++) {
+  //   if (refundman === negativeRefundMembers[i].member) {
+  //     // 返金のデータを入れ(refundを見て金額を持ってきてtransactionを更新)
+  //     refunds
 
-    }
-  }
+  //   }
+  // }
 
   // Storage.jsonに新データを追加したものを書き込む
   writeTransactions(transactions);
