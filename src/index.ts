@@ -1,5 +1,6 @@
 import { Client, GatewayIntentBits, Events, ChannelType } from "discord.js";
 import { deleteCmd, historyCmd, insertCmd, listCmd, refundCmd } from "./command";
+import assert from "assert";
 
 //////
 
@@ -16,7 +17,8 @@ export const client = new Client({
 // チャンネルIDはdiscordのチャンネルの部分を右クリックすると入手できる
 // ギルドというのがサーバー
 const CHANNEL_GENERAL = "1446799876917694598";
-
+const GUILD_ID = process.env.GUILD_ID;
+assert(GUILD_ID !== undefined);
 
 async function sendMessage(channelId: string, message: string) {
   const channel = await client.channels.fetch(channelId);
@@ -33,10 +35,12 @@ async function sendMessage(channelId: string, message: string) {
 
 // addEventListenerみたいなやつ
 // client.onceは条件に当てはまったら一度だけ実行される
-client.once(Events.ClientReady, (c) => {
+client.once(Events.ClientReady, async (c) => {
   console.log(`準備完了！ ${c.user.tag} としてログインしました。`);
   // ログイン時に1度だけメッセージを送れる
   sendMessage(CHANNEL_GENERAL, "yeah!");
+  const guild = await client.guilds.fetch(GUILD_ID);
+  await guild.members.fetch();
 });
 
 // client.onは条件に当てはまるたびに実行される
