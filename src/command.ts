@@ -11,24 +11,11 @@ import {
   ButtonStyle,
   ComponentType,
 } from "discord.js";
+import { equalWidthFormat } from "./format";
 
 const GUILD_ID = process.env.GUILD_ID;
 assert(GUILD_ID !== undefined);
 
-const confirmButton = new ButtonBuilder()
-  .setCustomId("confirm_transaction") // コード内で判別するためのID
-  .setLabel("承認する") // ボタンに表示される文字
-  .setStyle(ButtonStyle.Primary); // ボタンの色（青）
-
-const cancelButton = new ButtonBuilder()
-  .setCustomId("cancel_transaction")
-  .setLabel("キャンセル")
-  .setStyle(ButtonStyle.Danger);
-
-const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-  confirmButton,
-  cancelButton
-);
 export const insertCmd = async (
   client: Client<boolean>,
   interaction: ChatInputCommandInteraction<CacheType>
@@ -37,18 +24,18 @@ export const insertCmd = async (
   const transactions: Transaction[] = readTransactions();
 
   // 引数の受け取り
-  const participant: string = interaction.options.getUser(
-    "返金する人",
-    true
-  ).id;
+  const participant: string = interaction.options.getUser("返金する人", true).id;
   const payer: string = interaction.options.getUser("支払った人", true).id;
   const amount: number = interaction.options.getInteger("金額", true);
+  const memo: string | null = interaction.options.getString("メモ");
 
   // 新データ作成・追加
   const newData: Transaction = {
     participant,
     payer,
     amount,
+    memo: memo === null ? "" : memo,
+    date: new Date()
   };
   transactions.push(newData);
 
@@ -64,9 +51,7 @@ export const insertCmd = async (
 
   // メッセージ送信
   const replyText: string = `以下の支払いを追加しました。\n\t返金する人: ${
-    participantMember === undefined
-      ? "存在しないユーザー"
-      : participantMember.displayName
+    participantMember === undefined ? "存在しないユーザー" : participantMember.displayName
   }\n\t払った人: ${
     payerMember === undefined ? "存在しないユーザー" : payerMember.displayName
   }\n\t金額: ${amount}`;
@@ -130,8 +115,10 @@ export const historyCmd = async (
   const user1Nullable = interaction.options.getUser("検索するユーザー1");
   const user2Nullable = interaction.options.getUser("検索するユーザー2");
 
+  // Userで検索
   type TransactionWithIndex = {i: number, transaction: Transaction};
   const transactionsFiltered: TransactionWithIndex[] = transactions
+    // 1つずらしたindexを保持
     .map((transaction, i) => ({ i: i + 1, transaction }))
     .filter(({i, transaction}) => (
       (user1Nullable === null || transaction.payer === user1Nullable.id || transaction.participant === user1Nullable.id) &&
@@ -155,22 +142,42 @@ export const historyCmd = async (
     .slice(0, showCount)) {
     // idからmemberを取得
     const payerMember = guild.members.cache.get(transaction.payer);
+    const payerDisplayName = payerMember === undefined
+          ? "(存在しないユーザー)"
+          : payerMember.displayName;
     const participantMember = guild.members.cache.get(transaction.participant);
+    const participantDisplayName = participantMember === undefined
+          ? "(存在しないユーザー)"
+          : participantMember.displayName;
+    const dateMsg = `${
+      equalWidthFormat(`${transaction.date.getFullYear()}`, 4, true)
+    }-${
+      equalWidthFormat(`${transaction.date.getMonth() + 1}`, 2, true)
+    }-${
+      equalWidthFormat(`${transaction.date.getDate()}`, 2, true)
+    } ${
+      equalWidthFormat(`${transaction.date.getHours()}`, 2, true)
+    }:${
+      equalWidthFormat(`${transaction.date.getMinutes()}`, 2, true)
+    }:${
+      equalWidthFormat(`${transaction.date.getSeconds()}`, 2, true)
+    }`;
     replyTexts.push(
-      `${i}: ${
-        payerMember === undefined
-          ? "(存在しないユーザー)"
-          : payerMember.displayName
-      }が${
-        participantMember === undefined
-          ? "(存在しないユーザー)"
-          : participantMember.displayName
-      }の分のお金を${transaction.amount}円払った\n`
+      `[${i}] ${
+        equalWidthFormat(transaction.memo, 20, false, true)
+      }: ${
+        equalWidthFormat(participantDisplayName, 15, false, true)
+      } は ${
+        equalWidthFormat(payerDisplayName, 15, false, true)
+      } に ${
+        equalWidthFormat(`${transaction.amount}`, 8)
+      }円 払ってもらった(${dateMsg})\n`
     );
   }
   if (transactions.length > showCount) {
     replyTexts.push(`(他${transactions.length - showCount}件)`);
   }
+  // 空メッセージ送信を回避
   const replyText: string = replyTexts.length === 0 ? "見つかりませんでした" : `\`\`\`\n${replyTexts.join("")}\n\`\`\``;
   await interaction.reply(replyText);
 };
@@ -324,6 +331,8 @@ export const refundCmd = async (
         participant: paymentmanId, // 元のpayerをparticipantに
         payer: refundmanId, // 元のparticipantをpayerに
         amount: refundAmount,
+        memo: "(返金処理による自動入力)",
+        date: new Date()
       };
       transactions.push(refundData);
       writeTransactions(transactions);

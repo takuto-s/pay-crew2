@@ -22,6 +22,10 @@ const commands = [
       .setDescription('支払いの金額')
       .setRequired(true)
       .setMinValue(1)
+    )
+    .addStringOption((option) => option
+      .setName('メモ')
+      .setDescription('支払いメモ')
     ),
   // 削除
   new SlashCommandBuilder()
