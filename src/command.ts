@@ -127,19 +127,28 @@ export const historyCmd = async (
   // 引数の受け取り
   const countNullable: number | null = interaction.options.getInteger("個数");
   const count: number = countNullable === null ? 10 : countNullable;
+  const user1Nullable = interaction.options.getUser("検索するユーザー1");
+  const user2Nullable = interaction.options.getUser("検索するユーザー2");
+
+  type TransactionWithIndex = {i: number, transaction: Transaction};
+  const transactionsFiltered: TransactionWithIndex[] = transactions
+    .map((transaction, i) => ({ i: i + 1, transaction }))
+    .filter(({i, transaction}) => (
+      (user1Nullable === null || transaction.payer === user1Nullable.id || transaction.participant === user1Nullable.id) &&
+      (user2Nullable === null || transaction.payer === user2Nullable.id || transaction.participant === user2Nullable.id)
+    ));
 
   // 表示個数
-  const showCount: number =
-    transactions.length >= count ? count : transactions.length;
+  const showCount: number = transactions.length >= count
+    ? count
+    : transactions.length;
 
   // サーバー情報の取得
   const guild = await client.guilds.fetch(GUILD_ID);
 
   // メッセージ送信
   const replyTexts: string[] = [];
-  for (const { i, transaction } of transactions
-    // indexを1ずらす
-    .map((transaction, i) => ({ i: i + 1, transaction }))
+  for (const { i, transaction } of transactionsFiltered
     // 逆順
     .reverse()
     // 表示個数分だけ取得
@@ -162,7 +171,7 @@ export const historyCmd = async (
   if (transactions.length > showCount) {
     replyTexts.push(`(他${transactions.length - showCount}件)`);
   }
-  const replyText: string = replyTexts.length === 0 ? "まだ何もありません！" : `\`\`\`\n${replyTexts.join("")}\n\`\`\``;
+  const replyText: string = replyTexts.length === 0 ? "見つかりませんでした" : `\`\`\`\n${replyTexts.join("")}\n\`\`\``;
   await interaction.reply(replyText);
 };
 

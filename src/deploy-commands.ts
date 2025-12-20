@@ -7,31 +7,28 @@ const commands = [
   new SlashCommandBuilder()
     .setName('insert') // コマンド名 すべて小文字
     .setDescription('支払いを追加します')
-    .addUserOption((option) => 
-      option
-        .setName('支払った人')
-        .setDescription('今回の支払いを建て替えた人')
-        .setRequired(true)
+    .addUserOption((option) => option
+      .setName('支払った人')
+      .setDescription('今回の支払いを建て替えた人')
+      .setRequired(true)
     )
-    .addUserOption((option) =>
-      option
-        .setName('返金する人')
-        .setDescription('今回の支払いを返金すべき人')
-        .setRequired(true)
+    .addUserOption((option) => option
+      .setName('返金する人')
+      .setDescription('今回の支払いを返金すべき人')
+      .setRequired(true)
     )
-    .addIntegerOption((option) =>
-      option
-        .setName('金額')
-        .setDescription('支払いの金額')
-        .setRequired(true)
-        .setMinValue(1)
+    .addIntegerOption((option) => option
+      .setName('金額')
+      .setDescription('支払いの金額')
+      .setRequired(true)
+      .setMinValue(1)
     ),
   // 削除
   new SlashCommandBuilder()
     .setName('delete') // コマンド名
     .setDescription('指定したIDのデータを削除します')
-    .addIntegerOption((option) => 
-      option.setName('id')
+    .addIntegerOption((option) => option
+      .setName('id')
       .setDescription('削除したいデータの番号（ID）')
       .setRequired(true)
     ),
@@ -39,8 +36,15 @@ const commands = [
   new SlashCommandBuilder()
     .setName("history")
     .setDescription("支払いの履歴を最新のものから表示します")
-    .addIntegerOption((option) => 
-      option
+    .addUserOption((option) => option
+      .setName("検索するユーザー1")
+      .setDescription("支払いに関連するユーザー")
+    )
+    .addUserOption((option) => option
+      .setName("検索するユーザー2")
+      .setDescription("支払いに関連するユーザー")
+    )
+    .addIntegerOption((option) => option
       .setName("個数")
       .setDescription("表示する個数")
     ),
@@ -53,17 +57,15 @@ const commands = [
   new SlashCommandBuilder()
     .setName("refund")
     .setDescription('返金処理をします')
-    .addUserOption((option) => 
-      option
-        .setName('返金するorされる人1')
-        .setDescription('これから返金する人もしくはこれから返金してもらう人')
-        .setRequired(true)
+    .addUserOption((option) => option
+      .setName('返金するorされる人1')
+      .setDescription('これから返金する人もしくはこれから返金してもらう人')
+      .setRequired(true)
     )
-    .addUserOption((option) =>
-      option
-        .setName('返金するorされる人2')
-        .setDescription('これから返金する人もしくはこれから返金してもらう人')
-        .setRequired(true)
+    .addUserOption((option) => option
+      .setName('返金するorされる人2')
+      .setDescription('これから返金する人もしくはこれから返金してもらう人')
+      .setRequired(true)
     ),
 ].map((command) => command.toJSON());
 
