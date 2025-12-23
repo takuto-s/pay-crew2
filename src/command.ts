@@ -54,6 +54,8 @@ export const insertCmd = async (
     participantMember === undefined ? "存在しないユーザー" : participantMember.displayName
   }\n\t払った人: ${
     payerMember === undefined ? "存在しないユーザー" : payerMember.displayName
+  }\n\tメモ: ${
+    memo === null ? "(No Title)" : memo
   }\n\t金額: ${amount}`;
   await interaction.reply(replyText);
 };
@@ -150,27 +152,29 @@ export const historyCmd = async (
           ? "(存在しないユーザー)"
           : participantMember.displayName;
     const dateMsg = `${
-      equalWidthFormat(`${transaction.date.getFullYear()}`, 4, {narrow: 3, wide: 5}, true)
+      equalWidthFormat(`${transaction.date.getFullYear()}`, 4, {widthRate: {narrow: 3, wide: 5}, zeroPadding: true})
     }-${
-      equalWidthFormat(`${transaction.date.getMonth() + 1}`, 2, {narrow: 3, wide: 5}, true)
+      equalWidthFormat(`${transaction.date.getMonth() + 1}`, 2, {widthRate: {narrow: 3, wide: 5}, zeroPadding: true})
     }-${
-      equalWidthFormat(`${transaction.date.getDate()}`, 2, {narrow: 3, wide: 5}, true)
+      equalWidthFormat(`${transaction.date.getDate()}`, 2, {widthRate: {narrow: 3, wide: 5}, zeroPadding: true})
     } ${
-      equalWidthFormat(`${transaction.date.getHours()}`, 2, {narrow: 3, wide: 5}, true)
+      equalWidthFormat(`${transaction.date.getHours()}`, 2, {widthRate: {narrow: 3, wide: 5}, zeroPadding: true})
     }:${
-      equalWidthFormat(`${transaction.date.getMinutes()}`, 2, {narrow: 3, wide: 5}, true)
+      equalWidthFormat(`${transaction.date.getMinutes()}`, 2, {widthRate: {narrow: 3, wide: 5}, zeroPadding: true})
     }:${
-      equalWidthFormat(`${transaction.date.getSeconds()}`, 2, {narrow: 3, wide: 5}, true)
+      equalWidthFormat(`${transaction.date.getSeconds()}`, 2, {widthRate: {narrow: 3, wide: 5}, zeroPadding: true})
     }`;
     replyTexts.push(
-      `[${i}] ${
-        equalWidthFormat(transaction.memo, 20, {narrow: 3, wide: 5}, false, true)
+      `[${
+        equalWidthFormat(`${i}`, 4, {widthRate: {narrow: 3, wide: 5}})
+      }] ${
+        equalWidthFormat(transaction.memo, 15, {widthRate: {narrow: 3, wide: 5}, cut: true})
       }: ${
-        equalWidthFormat(participantDisplayName, 15, {narrow: 3, wide: 5}, false, true)
+        equalWidthFormat(participantDisplayName, 15, {widthRate: {narrow: 3, wide: 5}, cut: true})
       } は ${
-        equalWidthFormat(payerDisplayName, 15, {narrow: 3, wide: 5}, false, true)
+        equalWidthFormat(payerDisplayName, 15, {widthRate: {narrow: 3, wide: 5}, cut: true})
       } に ${
-        equalWidthFormat(`${transaction.amount}`, 8, {narrow: 3, wide: 5})
+        equalWidthFormat(`${transaction.amount}`, 8, {widthRate: {narrow: 3, wide: 5}})
       }円 払ってもらった(${dateMsg})\n`
     );
   }
@@ -257,11 +261,11 @@ export const listCmd = async (
     const toMember = guild.members.cache.get(to);
     replyTexts.push(
       `${
-        fromMember === undefined ? "(存在しないユーザー)" : fromMember.displayName
-      } ---- ${
-        amount
-      }円 ---> ${
-        toMember === undefined ? "(存在しないユーザー)" : toMember.displayName
+        equalWidthFormat(fromMember === undefined ? "(存在しないユーザー)" : fromMember.displayName, 20)
+      } ---- [${
+        equalWidthFormat(`${amount}`, 10)
+      }円] ---> ${
+        equalWidthFormat(toMember === undefined ? "(存在しないユーザー)" : toMember.displayName, 20)
       }\n`
     );
   }
