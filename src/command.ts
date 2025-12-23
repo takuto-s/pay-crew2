@@ -100,6 +100,8 @@ export const deleteCmd = async (
       : participantMember.displayName
   }\n\t払った人: ${
     payerMember === undefined ? "存在しないユーザー" : payerMember.displayName
+  }\n\tメモ: ${
+    deletedItem.memo
   }\n\t金額: ${deletedItem.amount}`;
   await interaction.reply({ content: replyText });
 };
@@ -185,6 +187,45 @@ export const historyCmd = async (
   const replyText: string = replyTexts.length === 0 ? "見つかりませんでした" : `\`\`\`\n${replyTexts.join("")}\n\`\`\``;
   await interaction.reply(replyText);
 };
+
+export const historyDetailCmd = async (
+  client: Client<boolean>,
+  interaction: ChatInputCommandInteraction<CacheType>
+) => {
+  // 履歴の読み込み
+  const transactions: Transaction[] = readTransactions();
+
+  // 引数の受け取り
+  const index: number = interaction.options.getInteger("id", true);
+
+  // バリデーション
+  if (index < 1 || transactions.length < index) {
+    await interaction.reply({
+      content: `ID: ${index} のデータは見つかりませんでした。（1 〜 ${transactions.length} の範囲で指定してください）`,
+      ephemeral: true,
+    });
+    return;
+  }
+
+  const transaction = transactions[index];
+
+  // サーバー情報の取得
+  const guild = await client.guilds.fetch(GUILD_ID);
+
+  // idからmemberを取得
+  const participantMember = guild.members.cache.get(transaction.participant);
+  const payerMember = guild.members.cache.get(transaction.payer);
+  
+  // メッセージ送信
+  const replyText: string = `以下の支払いを追加しました。\n\t返金する人: ${
+    participantMember === undefined ? "存在しないユーザー" : participantMember.displayName
+  }\n\t払った人: ${
+    payerMember === undefined ? "存在しないユーザー" : payerMember.displayName
+  }\n\tメモ: ${
+    transaction.memo
+  }\n\t金額: ${transaction.amount}`;
+  await interaction.reply(replyText);
+}
 
 type Refund = { from: string; to: string; amount: number };
 const refundList = () => {

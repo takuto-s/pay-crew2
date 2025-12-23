@@ -1,5 +1,5 @@
 import { Client, GatewayIntentBits, Events, ChannelType } from "discord.js";
-import { deleteCmd, historyCmd, insertCmd, listCmd, refundCmd } from "./command";
+import { deleteCmd, historyCmd, historyDetailCmd, insertCmd, listCmd, refundCmd } from "./command";
 import assert from "assert";
 
 //////
@@ -63,6 +63,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
     await deleteCmd(client, interaction);
   } else if (interaction.commandName === "history") {
     await historyCmd(client, interaction);
+  } else if (interaction.commandName === "history-detail") {
+    await historyDetailCmd(client, interaction)
   } else if (interaction.commandName === "list") {
     await listCmd(client, interaction)
   } else if (interaction.commandName === "refund") {

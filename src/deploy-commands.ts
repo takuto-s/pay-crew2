@@ -52,6 +52,15 @@ const commands = [
       .setName("個数")
       .setDescription("表示する個数")
     ),
+  // 履歴表示
+  new SlashCommandBuilder()
+    .setName("history-detail")
+    .setDescription("支払いの履歴を1件表示します")
+    .addIntegerOption((option) => option
+      .setName("id")
+      .setDescription("表示する履歴のid")
+      .setRequired(true)
+    ),
   // 返金表示
   new SlashCommandBuilder()
     .setName("list")
