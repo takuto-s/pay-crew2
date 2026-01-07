@@ -150,27 +150,27 @@ export const historyCmd = async (
           ? "(存在しないユーザー)"
           : participantMember.displayName;
     const dateMsg = `${
-      equalWidthFormat(`${transaction.date.getFullYear()}`, 4, {narrow: 3, wide: 5}, true)
+      equalWidthFormat(`${transaction.date.getFullYear()}`, 4, {widthRate: {narrow: 3, wide: 5}, zeroPadding: true})
     }-${
-      equalWidthFormat(`${transaction.date.getMonth() + 1}`, 2, {narrow: 3, wide: 5}, true)
+      equalWidthFormat(`${transaction.date.getMonth() + 1}`, 2, {widthRate: {narrow: 3, wide: 5}, zeroPadding: true})
     }-${
-      equalWidthFormat(`${transaction.date.getDate()}`, 2, {narrow: 3, wide: 5}, true)
+      equalWidthFormat(`${transaction.date.getDate()}`, 2, {widthRate: {narrow: 3, wide: 5}, zeroPadding: true})
     } ${
-      equalWidthFormat(`${transaction.date.getHours()}`, 2, {narrow: 3, wide: 5}, true)
+      equalWidthFormat(`${transaction.date.getHours()}`, 2, {widthRate: {narrow: 3, wide: 5}, zeroPadding: true})
     }:${
-      equalWidthFormat(`${transaction.date.getMinutes()}`, 2, {narrow: 3, wide: 5}, true)
+      equalWidthFormat(`${transaction.date.getMinutes()}`, 2, {widthRate: {narrow: 3, wide: 5}, zeroPadding: true})
     }:${
-      equalWidthFormat(`${transaction.date.getSeconds()}`, 2, {narrow: 3, wide: 5}, true)
+      equalWidthFormat(`${transaction.date.getSeconds()}`, 2, {widthRate: {narrow: 3, wide: 5}, zeroPadding: true})
     }`;
     replyTexts.push(
       `[${i}] ${
-        equalWidthFormat(transaction.memo, 20, {narrow: 3, wide: 5}, false, true)
+        equalWidthFormat(transaction.memo, 20, {widthRate: {narrow: 3, wide: 5}, cut: true})
       }: ${
-        equalWidthFormat(participantDisplayName, 15, {narrow: 3, wide: 5}, false, true)
+        equalWidthFormat(participantDisplayName, 15, {widthRate: {narrow: 3, wide: 5}, cut: true})
       } は ${
-        equalWidthFormat(payerDisplayName, 15, {narrow: 3, wide: 5}, false, true)
+        equalWidthFormat(payerDisplayName, 15, {widthRate: {narrow: 3, wide: 5}, cut: true})
       } に ${
-        equalWidthFormat(`${transaction.amount}`, 8, {narrow: 3, wide: 5})
+        equalWidthFormat(`${transaction.amount}`, 8, {widthRate: {narrow: 3, wide: 5}})
       }円 払ってもらった(${dateMsg})\n`
     );
   }

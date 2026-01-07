@@ -25,7 +25,8 @@ const equalWidthLength = (value: string, widthRate?: {narrow: number, wide: numb
   };
 }
 
-export const equalWidthFormat = (value: string, dight: number, widthRate?: {narrow: number, wide: number}, zeroPadding?: boolean, cut?: boolean): string => {
+export const equalWidthFormat = (value: string, dight: number, options?: {widthRate?: {narrow: number, wide: number}, zeroPadding?: boolean, cut?: boolean}): string => {
+  const {widthRate, zeroPadding, cut} = options === undefined ? {} : options;
   const {narrow: narrowRate, wide: wideRate} = widthRate === undefined ? {narrow: 1, wide: 2} : widthRate;
   const padding: string = zeroPadding === true ? "0" : " ";
 
